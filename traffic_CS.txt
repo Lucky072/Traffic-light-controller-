@@ -1,0 +1,96 @@
+	GREEN	EQU	0X00
+	YELLOW	EQU	0X01
+	RED	EQU	0X02	
+	SW1	EQU	0x03
+	GREEN_P	EQU	0X07
+	RED_P	EQU	0X05
+	
+	tmp1	equ	0x20
+    	tmp2	equ	0x21
+    	tmp3	equ	0x22
+
+	ORG h'00'
+	GOTO MAIN
+	ORG h'04'
+	RETFIE
+INIT:
+	MOVLW	0x07
+	MOVWF	CMCON
+	BSF	STATUS,RP0
+	MOVLW	b'00001000'
+	MOVWF	TRISB
+	BCF	STATUS,RP0
+	RETURN
+
+MAIN:	
+	CALL	INIT
+	BTFSC	PORTB,SW1
+	CALL	PEDESTRIAN
+	CALL	NORMAL
+	GOTO	MAIN
+NORMAL:
+	BCF	PORTB,GREEN_P ;RED PEDESTRIAN
+	BCF	PORTB,RED
+	BCF	PORTB,YELLOW
+	BSF	PORTB,GREEN  ;GREEN
+	BSF	PORTB,RED_P ;RED PEDESTRIAN
+	
+	CALL	delay_loop_10_sec
+	BCF	PORTB,RED
+	BSF	PORTB,YELLOW ;YELLOW
+	BCF	PORTB,GREEN
+	CALL	delay_loop_3_sec
+	BTFSS	PORTB,SW1
+	CALL	PEDE_ON
+	RETURN	
+PEDE_ON:
+	BSF	PORTB,RED   ;RED
+	BCF	PORTB,YELLOW
+	BCF	PORTB,GREEN
+	CALL	delay_loop_10_sec
+	RETURN
+PEDESTRIAN:
+	BCF	PORTB,YELLOW
+	BSF	PORTB,RED
+	BCF	PORTB,RED_P ;RED PEDESTRIAN
+	BCF	PORTB,GREEN  ;GREEN
+	BSF	PORTB,GREEN_P ;RED PEDESTRIAN
+	CALL	delay_loop_10_sec
+	RETURN
+delay_loop_10_sec:
+	movlw	D'10'
+	movwf	tmp3
+loop3:
+	movlw	D'10'
+	movwf	tmp2
+loop2:
+	movlw	D'10'
+	movwf	tmp1
+loop1:
+	nop
+	decfsz	tmp1,f
+	goto	loop1
+	decfsz	tmp2,f
+	goto	loop2
+	decfsz	tmp3,f
+	goto	loop3
+	return
+
+delay_loop_3_sec:
+	movlw	D'3'
+	movwf	tmp3
+loop3_y:
+	movlw	D'10'
+	movwf	tmp2
+loop2_y:
+	movlw	D'10'
+	movwf	tmp1
+loop1_y:
+	nop
+	decfsz	tmp1,f
+	goto	loop1_y
+	decfsz	tmp2,f
+	goto	loop2_y
+	decfsz	tmp3,f
+	goto	loop3_y
+	return
